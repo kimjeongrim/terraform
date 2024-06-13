@@ -1,0 +1,5 @@
+resource "aws_lb_target_group_attachment" "ogurim_albtgat" {
+  target_group_arn = aws_lb_target_group.ogurim_albtg.arn
+  target_id        = aws_instance.ogurim_weba.id
+  port             = 80
+}
