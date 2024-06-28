@@ -1,0 +1,55 @@
+### aws/09_vpc_peering.tf ###
+
+# VPC Peering
+
+# resource "null_resource" "peering_connection_complete" {
+#   depends_on = [
+#     module.seoul.aws_vpc.ogurim_vpc, module.tokyo.aws_vpc.ogurim_vpc
+#   ]
+# }
+
+resource "aws_vpc_peering_connection" "peer_connection" {
+  vpc_id      = var.vpc_id
+  peer_vpc_id = var.peer_vpc_id
+  # peer_owner_id = data.aws_caller_identity.peer.account_id
+  peer_region = var.peer_vpc_region # 도쿄 리전
+  auto_accept = true
+
+  # depends_on = [
+  #   module.seoul.aws_vpc.ogurim_vpc, module.tokyo.aws_vpc.ogurim_vpc
+  # ]
+  # auto_accept = true
+
+  # accepter {
+  #   allow_remote_vpc_dns_resolution = true
+  # }
+
+  # requester {
+  #   allow_remote_vpc_dns_resolution = true
+  # }
+
+  tags = {
+    Name = "peer-connection"
+  }
+}
+
+resource "aws_vpc_peering_connection_accepter" "tokyo_peering_accepter" {
+  vpc_peering_connection_id = aws_vpc_peering_connection.peer_connection.id
+  auto_accept = true
+
+    tags = {
+    Name = "peering-accepter"
+  }
+}
+
+
+# VPC 라우팅
+resource "aws_route" "peer_route" {
+  route_table_id            = aws_route_table.ogurim_rt.id
+  destination_cidr_block    = var.peer_vpc_cidr
+  vpc_peering_connection_id = aws_vpc_peering_connection.peer_connection.id
+
+  # depends_on = [
+  #   module.seoul.aws_vpc_peering_connection.peer_connection, module.tokyo.aws_vpc_peering_connection.peer_connection
+  #   ]
+}
